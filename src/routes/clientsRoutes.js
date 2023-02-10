@@ -3,7 +3,7 @@ import {
   findClients,
   getClienttById,
   registerClient,
-  // updateClient,
+  updateClient,
 } from "../controllers/clientsController.js";
 import { clientSchemaValidation } from "../middlewares/clientsMiddleware.js";
 
