@@ -13,8 +13,6 @@ export async function findGames(req, res) {
 
 export async function createGame(req, res) {
   const { name, image, stockTotal, pricePerDay } = res.locals.game;
-  // console.log(req.body);
-  // const { name, image, stockTotal, pricePerDay } = req.body;
 
   try {
     await db.query(
