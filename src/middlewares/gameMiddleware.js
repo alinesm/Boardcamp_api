@@ -15,7 +15,7 @@ export async function gameSchemaValidation(req, res, next) {
     `SELECT name FROM games WHERE name= '${game.name}'`
   );
   console.log(checkName.rows[0]);
-  if (checkName.rows[0]) return res.status(409).send("Esse usuário já existe");
+  if (checkName.rows[0]) return res.status(409).send("Esse jogo já existe");
 
   res.locals.game = game;
 

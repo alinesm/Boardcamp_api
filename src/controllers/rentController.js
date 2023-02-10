@@ -117,14 +117,20 @@ export async function finalizeRental(req, res) {
   // }
 }
 
-// export async function deleteRental(req, res) {
-// DELETE FROM usuarios WHERE id = 2;
+export async function deleteRental(req, res) {
+  const { id } = req.params;
 
-// //   - Ao excluir um aluguel, deve verificar se o `id`
-// //   fornecido existe. Se não, deve responder com **status 404.**
+  try {
+    await db.query(`DELETE * FROM rentals WHERE id = $1;`, [id]);
+    res.send("deleted");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 
-// // - Ao excluir um aluguel, deve verificar se o aluguel já não está
-// // finalizado (ou seja, `returnDate` já está preenchido).
-// // Se não estiver finalizado, deve responder com **status 400.**
+  //   - Ao excluir um aluguel, deve verificar se o `id`
+  //   fornecido existe. Se não, deve responder com **status 404.**
 
-// }
+  // - Ao excluir um aluguel, deve verificar se o aluguel já não está
+  // finalizado (ou seja, `returnDate` já está preenchido).
+  // Se não estiver finalizado, deve responder com **status 400.**
+}

@@ -4,7 +4,7 @@ export async function findGames(req, res) {
   try {
     const games = await db.query("SELECT * FROM games");
     console.log(games.rows);
-    res.send(games.rows);
+    res.status(201).send(games.rows);
   } catch (error) {
     console.error(error);
     res.status(500).send("Houve um problema no servidor");
