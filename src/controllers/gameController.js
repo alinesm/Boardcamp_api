@@ -4,7 +4,7 @@ export async function findGames(req, res) {
   try {
     const games = await db.query("SELECT * FROM games");
     console.log(games.rows);
-    res.status(201).send(games.rows);
+    res.send(games.rows);
   } catch (error) {
     console.error(error);
     res.status(500).send("Houve um problema no servidor");
@@ -18,7 +18,11 @@ export async function createGame(req, res) {
 
   try {
     await db.query(
-      `INSERT INTO games (name, image, stockTotal, pricePerDay) VALUES ( '${name}', '${image}', '${stockTotal}', '${pricePerDay}')`
+      `
+    INSERT INTO games
+    (name, image, "stockTotal", "pricePerDay") 
+    VALUES ($1, $2, $3, $4)`,
+      [name, image, stockTotal, pricePerDay]
     );
     res.status(201).send("game inserido com sucesso");
   } catch (error) {
