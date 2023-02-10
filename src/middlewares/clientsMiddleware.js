@@ -10,11 +10,11 @@ export async function clientSchemaValidation(req, res, next) {
     return res.status(400).send(errorMessages);
   }
 
-  const checkCPF = await db.query(
-    `SELECT name FROM customers WHERE cpf= '${client.cpf}'`
-  );
-  console.log(checkCPF.rows[0]);
-  if (checkCPF.rows[0]) return res.status(409).send("Esse usuário já existe");
+  // const checkCPF = await db.query(
+  //   `SELECT name FROM customers WHERE cpf= '${client.cpf}'`
+  // );
+  // console.log(checkCPF.rows[0]);
+  // if (checkCPF.rows[0]) return res.status(409).send("Esse usuário já existe");
 
   res.locals.client = client;
 
