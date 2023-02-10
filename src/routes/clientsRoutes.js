@@ -12,6 +12,6 @@ const router = Router();
 router.get("/customers", findClients);
 router.get("/customers/:id", getClienttById);
 router.post("/customers", clientSchemaValidation, registerClient);
-router.put("/customers/:id", updateClient);
+router.put("/customers/:id", clientSchemaValidation, updateClient);
 
 export default router;

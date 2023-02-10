@@ -11,8 +11,7 @@ export async function clientSchemaValidation(req, res, next) {
   }
 
   const checkCPF = await db.query(
-    "SELECT cpf FROM customers where cpf = $1 AND id <> $2 ",
-    [client.cpf, client.id]
+    `SELECT name FROM customers WHERE cpf= '${client.cpf}'`
   );
   console.log(checkCPF.rows[0]);
   if (checkCPF.rows[0]) return res.status(409).send("Esse usuário já existe");

@@ -51,6 +51,13 @@ export async function updateClient(req, res) {
   const { id } = req.params;
   const { name, phone, cpf, birthday } = res.locals.client;
 
+  const checkCustomerId = await db.query(
+    `SELECT name FROM customers WHERE id= '${id}'`
+  );
+  // console.log(checkCustomerId.rows[0]);
+  if (!checkCustomerId.rows[0])
+    return res.status(404).send("Esse cliente não existe");
+
   try {
     await db.query(
       'UPDATE "customers" SET "name" = $1, "phone" = $2, "cpf" = $3, "birthday" = $4 WHERE id = $5',
