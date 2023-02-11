@@ -51,14 +51,14 @@ export async function updateClient(req, res) {
   const { id } = req.params;
   const { name, phone, cpf, birthday } = res.locals.client;
 
-  try {
-    const cpfExists = await db.query(
-      "SELECT cpf FROM customers where cpf = $1 AND id <> $2 ",
-      [cpf, id]
-    );
-    if (cpfExists.rowCount !== 0)
-      return res.status(409).send("CPF já cadastrado");
+  const cpfExists = await db.query(
+    "SELECT cpf FROM customers where cpf = $1 AND id <> $2 ",
+    [cpf, id]
+  );
+  if (cpfExists.rowCount !== 0)
+    return res.status(409).send("CPF já cadastrado");
 
+  try {
     await db.query(
       "UPDATE customers SET name= $1, phone = $2, cpf = $3, birthday = $4 WHERE id = $5",
       [name, phone, cpf, birthday, id]
