@@ -3,14 +3,14 @@ import {
   deleteRental,
   finalizeRental,
   findRents,
-  registerRent,
+  registerRental,
 } from "../controllers/rentController.js";
 import { rentalSchemaValidation } from "../middlewares/rentMiddleware.js";
 
 const router = Router();
 
 router.get("/rentals", findRents);
-router.post("/rentals", rentalSchemaValidation, registerRent);
+router.post("/rentals", rentalSchemaValidation, registerRental);
 router.post("/rentals/:id/return", finalizeRental);
 router.delete("/rentals/:id", deleteRental);
 

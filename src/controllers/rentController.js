@@ -27,40 +27,51 @@ export async function findRents(req, res) {
   }
 }
 
-export async function registerRent(req, res) {
-  const { customerId, gameId, daysRented } = res.locals.rental;
-
-  const openRentals = await db.query(
-    'SELECT * FROM rentals WHERE "gameId" = $1',
-    [gameId]
-  );
-
-  const checkStock = await db.query(
-    'SELECT "stockTotal" FROM games WHERE id = $1',
-    [gameId]
-  );
-
-  if (checkStock.rows[0].stockTotal <= openRentals.rowCount) {
-    return res.status(400).send("Não há games suficientes para serem alugados");
-  }
-  const nowDate = dayjs().format("YYYY-MM-DD");
-
-  const gamePriceQuery = await db.query(
-    `SELECT "pricePerDay" FROM games WHERE id = '${gameId}'`
-  );
-  const gamePrice = gamePriceQuery.rows[0].pricePerDay;
-
-  const originalPrice = gamePrice * daysRented;
-
+export async function registerRental(req, res) {
+  const { customerId, gameId, daysRented } = req.body;
   try {
-    await db.query(
-      `INSERT INTO rentals ("customerId", "gameId", "daysRented", "rentDate", "originalPrice") VALUES ( '${customerId}', '${gameId}', '${nowDate}' , '${daysRented}', null, '${originalPrice}', null)`
+    const existingGame = await db.query("SELECT * FROM games WHERE id = $1", [
+      gameId,
+    ]);
+    if (existingGame.rowCount !== 1) {
+      return res.sendStatus(400);
+    }
+
+    const existingCustomer = await db.query(
+      "SELECT * FROM customers WHERE id = $1",
+      [customerId]
+    );
+    if (existingCustomer.rowCount !== 1) {
+      return res.sendStatus(400);
+    }
+
+    const openRentals = await db.query(
+      'SELECT * FROM rentals WHERE "gameId" = $1',
+      [gameId]
     );
 
-    res.status(201).send("rental inserido com sucesso");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Houve um problema no servidor");
+    const checkStock = await db.query(
+      'SELECT "stockTotal" FROM games WHERE id = $1',
+      [gameId]
+    );
+    if (checkStock.rows[0].stockTotal <= openRentals.rowCount) {
+      return res.sendStatus(400);
+    }
+
+    const rental = await db.query(
+      `
+    INSERT INTO rentals ("customerId", "gameId", "daysRented", "rentDate", "originalPrice")
+    VALUES ($1, $2, $3, NOW(), (SELECT "pricePerDay" FROM games WHERE id = $2) * $3);
+    `,
+      [customerId, gameId, daysRented]
+    );
+
+    if (rental.rowCount === 1) {
+      res.sendStatus(201);
+    }
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
   }
 }
 
@@ -74,15 +85,15 @@ export async function finalizeRental(req, res) {
   if (!checkRentalId.rows[0])
     return res.status(404).send("Esse aluguel não existe");
 
-  if (checkRentalId.rows[0].returndate)
+  if (checkRentalId.rows[0].returnDate)
     return res.status(400).send("Esse aluguel já foi finalizado");
 
   const nowDate = dayjs().format("YYYY-MM-DD");
 
   const rentalDateQuery = await db.query(
-    `select rentdate from rentals where id='${id}'`
+    `select "rentDate" from rentals where id='${id}'`
   );
-  const rentalDate = rentalDateQuery.rows[0].rentdate;
+  const rentalDate = rentalDateQuery.rows[0].rentDate;
 
   const delayDays = Math.ceil(
     (new Date(nowDate) - new Date(rentalDate)) / (1000 * 60 * 60 * 24)
@@ -96,7 +107,7 @@ export async function finalizeRental(req, res) {
 
   try {
     await db.query(
-      `UPDATE rentals SET returndate='${nowDate}', delayfee= '${delayFee}' WHERE id = '${id}';`
+      `UPDATE rentals SET "returnDate"='${nowDate}', "delayFee"= '${delayFee}' WHERE id = '${id}';`
     );
     res.send("rent finalized");
   } catch (err) {
