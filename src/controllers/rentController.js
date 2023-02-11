@@ -46,7 +46,7 @@ export async function registerRent(req, res) {
   const nowDate = dayjs().format("YYYY-MM-DD");
 
   const gamePriceQuery = await db.query(
-    `SELECT pricePerDay FROM games WHERE id = '${gameId}'`
+    `SELECT priceperday FROM games WHERE id = '${gameId}'`
   );
   const gamePrice = gamePriceQuery.rows[0].priceperday;
 
@@ -79,7 +79,7 @@ export async function finalizeRental(req, res) {
   const nowDate = dayjs().format("YYYY-MM-DD");
 
   const rentalDateQuery = await db.query(
-    `select rentDate from rentals where id='${id}'`
+    `select rentdate from rentals where id='${id}'`
   );
   const rentalDate = rentalDateQuery.rows[0].rentdate;
 
