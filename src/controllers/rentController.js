@@ -31,31 +31,32 @@ export async function registerRent(req, res) {
   const { customerId, gameId, daysRented } = res.locals.rental;
 
   const openRentals = await db.query(
-    "SELECT * FROM rentals WHERE gameid = $1",
+    'SELECT * FROM rentals WHERE "gameId" = $1',
     [gameId]
   );
 
   const checkStock = await db.query(
-    "SELECT stocktotal FROM games WHERE id = $1",
+    'SELECT "stockTotal" FROM games WHERE id = $1',
     [gameId]
   );
-  if (checkStock.rows[0].stocktotal <= openRentals.rowCount) {
+
+  if (checkStock.rows[0].stockTotal <= openRentals.rowCount) {
     return res.status(400).send("Não há games suficientes para serem alugados");
   }
-
   const nowDate = dayjs().format("YYYY-MM-DD");
 
   const gamePriceQuery = await db.query(
-    `SELECT priceperday FROM games WHERE id = '${gameId}'`
+    `SELECT "pricePerDay" FROM games WHERE id = '${gameId}'`
   );
-  const gamePrice = gamePriceQuery.rows[0].priceperday;
+  const gamePrice = gamePriceQuery.rows[0].pricePerDay;
 
   const originalPrice = gamePrice * daysRented;
 
   try {
     await db.query(
-      `INSERT INTO rentals (customerid, gameid, rentdate, daysrented, returndate , originalprice, delayfee) VALUES ( '${customerId}', '${gameId}', '${nowDate}' , '${daysRented}', null, '${originalPrice}', null)`
+      `INSERT INTO rentals ("customerId", "gameId", "daysRented", "rentDate", "originalPrice") VALUES ( '${customerId}', '${gameId}', '${nowDate}' , '${daysRented}', null, '${originalPrice}', null)`
     );
+
     res.status(201).send("rental inserido com sucesso");
   } catch (error) {
     console.error(error);
