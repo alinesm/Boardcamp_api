@@ -4,22 +4,15 @@ import { db } from "../database/database.js";
 export async function findRents(req, res) {
   try {
     const rentals = await db.query(`
-    SELECT 
-    rentals.*,
-    json_build_object(
-      'id', customers.id,
-      'name', customers.name
-    ) AS "customer",
-    json_build_object(
-      'id', games.id,
-      'name', games.name
-    ) AS "game"
-  FROM rentals 
-  JOIN customers 
-  ON rentals.customerid = customers.id 
-  JOIN games 
-  ON rentals.gameid = games.id`);
-
+    SELECT
+      rentals.*,
+      json_build_object('id', customers.id, 'name', customers.name) AS customer,
+      json_build_object('id', games.id, 'name', games.name) AS game
+    FROM
+      rentals
+      JOIN customers ON rentals."customerId" = customers.id
+      JOIN games ON rentals."gameId" = games.id;
+    `);
     res.send(rentals.rows);
   } catch (error) {
     console.error(error);
