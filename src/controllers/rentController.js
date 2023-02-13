@@ -21,20 +21,22 @@ export async function findRents(req, res) {
 }
 
 export async function registerRental(req, res) {
-  const { customerId, gameId, daysRented } = req.body;
+  const { customerId, gameId, daysRented } = res.locals.rental;
+
   try {
-    const existingGame = await db.query("SELECT * FROM games WHERE id = $1", [
-      gameId,
-    ]);
-    if (existingGame.rowCount !== 1) {
+    const checkgGameExists = await db.query(
+      "SELECT * FROM games WHERE id = $1",
+      [gameId]
+    );
+    if (checkgGameExists.rowCount !== 1) {
       return res.sendStatus(400);
     }
 
-    const existingCustomer = await db.query(
+    const checkCustomerExists = await db.query(
       "SELECT * FROM customers WHERE id = $1",
       [customerId]
     );
-    if (existingCustomer.rowCount !== 1) {
+    if (checkCustomerExists.rowCount !== 1) {
       return res.sendStatus(400);
     }
 
@@ -43,11 +45,11 @@ export async function registerRental(req, res) {
       [gameId]
     );
 
-    const checkStock = await db.query(
+    const checkGameStock = await db.query(
       'SELECT "stockTotal" FROM games WHERE id = $1',
       [gameId]
     );
-    if (checkStock.rows[0].stockTotal <= openRentals.rowCount) {
+    if (checkGameStock.rows[0].stockTotal <= openRentals.rowCount) {
       return res.sendStatus(400);
     }
 
@@ -58,10 +60,6 @@ export async function registerRental(req, res) {
     `,
       [customerId, gameId, daysRented]
     );
-
-    if (rental.rowCount === 1) {
-      res.sendStatus(201);
-    }
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
@@ -70,19 +68,24 @@ export async function registerRental(req, res) {
 
 export async function finalizeRental(req, res) {
   const { id } = req.params;
+
   try {
-    const rentalObj = await db.query("SELECT * FROM rentals WHERE id = $1 ", [
-      id,
-    ]);
-    if (rentalObj.rowCount < 1) return res.status(404).send("Não encontrado");
-    const rental = rentalObj.rows[0];
+    const checkRentalFinalized = await db.query(
+      "SELECT * FROM rentals WHERE id = $1 ",
+      [id]
+    );
+
+    if (checkRentalFinalized.rowCount < 1)
+      return res.status(404).send("Não encontrado");
+
+    const rental = checkRentalFinalized.rows[0];
 
     if (rental.returnDate) return res.status(400).send("Já finalizado");
 
-    const rentalDate = new Date(rental.rentDate);
+    const dateOfRental = new Date(rental.rentDate);
 
     const dueDate = new Date(
-      rentalDate.getTime() + rental.daysRented * 1000 * 60 * 60 * 24
+      dateOfRental.getTime() + rental.daysRented * 1000 * 60 * 60 * 24
     );
 
     const today = new Date();
@@ -90,6 +93,7 @@ export async function finalizeRental(req, res) {
     today.setTime(today.setHours(0, 0, 0, 0));
 
     const timeDiff = today.getTime() - dueDate.getTime();
+
     const daysDiff =
       timeDiff > 0 ? Math.floor(timeDiff / (1000 * 60 * 60 * 24)) : 0;
 
@@ -119,13 +123,15 @@ export async function deleteRental(req, res) {
   const { id } = req.params;
 
   try {
-    const rentalObj = await db.query("SELECT * FROM rentals WHERE id = $1", [
-      id,
-    ]);
+    const checkRentalFinalized = await db.query(
+      "SELECT * FROM rentals WHERE id = $1",
+      [id]
+    );
 
-    if (rentalObj.rowCount < 1) return res.status(404).send("Não encontrado");
+    if (checkRentalFinalized.rowCount < 1)
+      return res.status(404).send("Não encontrado");
 
-    if (!rentalObj.rows[0].returnDate)
+    if (!checkRentalFinalized.rows[0].returnDate)
       return res.status(400).send("Não finalizado");
 
     await db.query("DELETE FROM rentals WHERE id = $1", [id]);
