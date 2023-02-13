@@ -14,6 +14,13 @@ export async function findClients(req, res) {
 export async function registerClient(req, res) {
   const { name, phone, cpf, birthday } = res.locals.client;
 
+  const checkCPF = await db.query(
+    `SELECT name FROM customers WHERE cpf= '${cpf}'`
+  );
+
+  if (checkCPF.rowCount > 0)
+    return res.status(409).send("Esse usuário já existe");
+
   try {
     await db.query(
       `INSERT INTO customers (name, phone, cpf, birthday) VALUES ( '${name}', '${phone}', '${cpf}', '${birthday}')`
@@ -28,12 +35,10 @@ export async function registerClient(req, res) {
 export async function getClienttById(req, res) {
   const { id } = req.params;
 
-  // Se o cliente com id dado não existir, deve responder com status 404
-
   const checkCustomerId = await db.query(
     `SELECT name FROM customers WHERE id= '${id}'`
   );
-  // console.log(checkCustomerId.rows[0]);
+
   if (!checkCustomerId.rows[0])
     return res.status(404).send("Esse cliente não existe");
 
